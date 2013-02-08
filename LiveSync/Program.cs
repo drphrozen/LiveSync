@@ -1,28 +1,27 @@
 ﻿using System;
 using System.IO;
-using Newtonsoft.Json;
 
 namespace LiveSync
 {
 	internal class Program
 	{
-		private const string SettingsPath = "settings.json";
+		private const string SettingsPath = "settings.xml";
 
 		static void Main()
 		{
 			Settings settings;
+			var serializer = new SimpleSerializer<Settings>(SettingsPath);
 			if (!File.Exists(SettingsPath))
 			{
-				settings = new Settings {WatchPath = "", TargetPath = "", Patterns = new[] {""}};
-				var json = JsonConvert.SerializeObject(settings);
-				File.WriteAllText(SettingsPath, json);
+				settings = new Settings {WatchPath = " ", TargetPath = " ", Patterns = new[] {" "}};
+				serializer.Serialize(settings);
 			}
 			else
 			{
-				settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
+				settings = serializer.Deserialize();
 			}
 			
-			if (settings == null || string.IsNullOrEmpty(settings.WatchPath) || string.IsNullOrEmpty(settings.TargetPath) || settings.Patterns == null)
+			if (settings == null || string.IsNullOrWhiteSpace(settings.WatchPath) || string.IsNullOrWhiteSpace(settings.TargetPath) || settings.Patterns == null)
 			{
 				Console.WriteLine("Please create a {0} file first!", SettingsPath);
 				return;
