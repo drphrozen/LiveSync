@@ -20,14 +20,21 @@ namespace LiveSync
 			{
 				settings = serializer.Deserialize();
 			}
-			
-			if (settings == null || string.IsNullOrWhiteSpace(settings.WatchPath) || string.IsNullOrWhiteSpace(settings.TargetPath) || settings.Patterns == null)
+
+			LiveSync liveSync = null;
+			if (settings == null
+				|| string.IsNullOrWhiteSpace(settings.WatchPath)
+				|| string.IsNullOrWhiteSpace(settings.TargetPath)
+				|| settings.Patterns == null)
 			{
 				Console.WriteLine("Please create a {0} file first!", SettingsPath);
-				return;
 			}
-			var liveSync = new LiveSync(settings.WatchPath, settings.TargetPath, settings.Patterns, settings.Overwrite, settings.ActivityTimeout);
-			liveSync.Start();
+			else
+			{
+				liveSync = new LiveSync(settings.WatchPath, settings.TargetPath, settings.Patterns, settings.Overwrite, settings.ActivityTimeout);
+				liveSync.Start();
+			}
+			Console.WriteLine("Press Q to quit!");
 			var isRunning = true;
 			while (isRunning)
 			{
@@ -39,7 +46,10 @@ namespace LiveSync
 						break;
 				}
 			}
-			liveSync.Stop();
+			if (liveSync != null)
+			{
+				liveSync.Stop();
+			}
 		}
 	}
 }
