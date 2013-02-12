@@ -18,3 +18,7 @@ Here's an example of the "settings.xml":
   </Patterns>
 </Settings>
 ```
+
+Download
+========
+Download the latest build [here](https://docs.google.com/uc?export=download&id=0B3Yn35IwOdO5Mi1FM0dCMDhOZWM)
