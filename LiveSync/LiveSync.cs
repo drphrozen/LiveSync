@@ -18,8 +18,8 @@ namespace LiveSync
 
 		public LiveSync(string rootPath, string targetPath, IEnumerable<string> patterns)
 		{
-			_rootPath = rootPath;
-			_targetPath = targetPath;
+			_rootPath = Path.GetFullPath(rootPath);
+			_targetPath = Path.GetFullPath(targetPath);
 			_queue = new ConcurrentQueue<FileSystemEventArgs>();
 			Directory.SetCurrentDirectory(_rootPath);
 			_patterns = new HashSet<Regex>(patterns.Select(x => new Regex(x, RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled)));
