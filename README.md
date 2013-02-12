@@ -16,6 +16,8 @@ Here's an example of the "settings.xml":
     <Pattern>\.(js|aspx|less)$</Pattern>
     <Pattern>^Content\\</Pattern>
   </Patterns>
+  <Overwrite>false</Overwrite>
+  <ActivityDelay>1000</ActivityDelay>
 </Settings>
 ```
 
