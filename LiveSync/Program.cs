@@ -13,7 +13,7 @@ namespace LiveSync
 			var serializer = new SimpleSerializer<Settings>(SettingsPath);
 			if (!File.Exists(SettingsPath))
 			{
-				settings = new Settings {WatchPath = " ", TargetPath = " ", Patterns = new[] {" "}};
+				settings = new Settings {WatchPath = " ", TargetPath = " ", Patterns = new[] {" "}, Overwrite = false, ActivityTimeout = 1000};
 				serializer.Serialize(settings);
 			}
 			else
@@ -26,7 +26,20 @@ namespace LiveSync
 				Console.WriteLine("Please create a {0} file first!", SettingsPath);
 				return;
 			}
-			new LiveSync(settings.WatchPath, settings.TargetPath, settings.Patterns);
+			var liveSync = new LiveSync(settings.WatchPath, settings.TargetPath, settings.Patterns, settings.Overwrite, settings.ActivityTimeout);
+			liveSync.Start();
+			var isRunning = true;
+			while (isRunning)
+			{
+				var key = Console.ReadKey(true);
+				switch (key.Key)
+				{
+					case ConsoleKey.Q:
+						isRunning = false;
+						break;
+				}
+			}
+			liveSync.Stop();
 		}
 	}
 }

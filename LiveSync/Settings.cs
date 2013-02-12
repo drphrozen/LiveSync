@@ -8,5 +8,7 @@ namespace LiveSync
 		public string TargetPath { get; set; }
 		[XmlArrayItem("Pattern")]
 		public string[] Patterns { get; set; }
+		public bool? Overwrite { get; set; }
+		public int? ActivityTimeout { get; set; }
 	}
 }
