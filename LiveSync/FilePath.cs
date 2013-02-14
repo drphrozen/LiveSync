@@ -1,7 +1,7 @@
 ﻿namespace LiveSync
 {
-	public class FilePath
-	{
-		public string FullName { get; set; }
-	}
+  public class FilePath
+  {
+    public string FullName { get; set; }
+  }
 }
