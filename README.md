@@ -1,5 +1,6 @@
 LiveSync
 ========
+![icon](https://raw.github.com/drphrozen/LiveSync/master/Resources/livesync.png)
 
 Live synchronization of one directory to another.
 
