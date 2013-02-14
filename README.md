@@ -8,7 +8,7 @@ The tool was made to only sync changes while it is running, this means that an i
 
 Here's an example of the "LiveSync.xml":
 ```xml
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <WatchPath>c:\inetpub\wwwroot\DefaultWebSite\</WatchPath>
   <TargetPath>\\server\DefaultWebSite\</TargetPath>
