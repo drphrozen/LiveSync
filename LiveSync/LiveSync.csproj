@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FilePath.cs" />
+    <Compile Include="FileSystemEventWrapper.cs" />
     <Compile Include="LiveSync.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

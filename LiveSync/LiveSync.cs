@@ -13,7 +13,7 @@ namespace LiveSync
 		private readonly HashSet<Regex> _patterns;
 		private readonly string _rootPath;
 		private readonly string _targetPath;
-		private readonly ConcurrentQueue<FileSystemEventArgs> _queue;
+		private readonly ConcurrentQueue<FileSystemEventWrapper> _queue;
 		private readonly Timer _timer;
 		private readonly bool _overwrite;
 		private readonly int _activityTimeout;
@@ -25,7 +25,7 @@ namespace LiveSync
 			_activityTimeout = activityTimeout ?? 1000;
 			_rootPath = Path.GetFullPath(rootPath);
 			_targetPath = Path.GetFullPath(targetPath);
-			_queue = new ConcurrentQueue<FileSystemEventArgs>();
+			_queue = new ConcurrentQueue<FileSystemEventWrapper>();
 			_patterns = new HashSet<Regex>(patterns.Select(x => new Regex(x, RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled)));
 			_timer = new Timer(TimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 			_fileSystemWatcher = new FileSystemWatcher(_rootPath)
@@ -58,20 +58,10 @@ namespace LiveSync
 			Console.WriteLine("Stopped live sync..");
 		}
 
-		private static bool Equals(FileSystemEventArgs left, FileSystemEventArgs right)
-		{
-			return left.ChangeType == right.ChangeType && left.Name == right.Name;
-		}
-
-		private static bool Equals(RenamedEventArgs left, FileSystemEventArgs right)
-		{
-			return left.ChangeType == right.ChangeType && left.Name == right.Name && left.OldName == ((RenamedEventArgs)right).OldName;
-		}
-
 		private void TimerCallback(object state)
 		{
-			FileSystemEventArgs e;
-			FileSystemEventArgs last = new RenamedEventArgs(WatcherChangeTypes.Changed, "", "", "");
+            FileSystemEventWrapper e;
+            var last = new FileSystemEventWrapper{ChangeType = WatcherChangeTypes.All, Name = "", NewName = ""};
 			while (_queue.TryDequeue(out e))
 			{
 				try
@@ -79,28 +69,27 @@ namespace LiveSync
 					switch (e.ChangeType)
 					{
 						case WatcherChangeTypes.Created:
-							if (Equals(e, last)) return;
+							if (e == last) continue;
 							Console.Write("Copying {0}..", e.Name);
 							Copy(e);
 							Console.WriteLine(" OK!");
 							break;
 						case WatcherChangeTypes.Deleted:
-							if (Equals(e, last)) return;
+                            if (e == last) continue;
 							Console.Write("Deleting {0}..", e.Name);
 							Delete(e);
 							Console.WriteLine(" OK!");
 							break;
 						case WatcherChangeTypes.Changed:
-							if (Equals(e, last)) return;
+                            if (e == last) continue;
 							Console.Write("Copying {0}..", e.Name);
 							Copy(e);
 							Console.WriteLine(" OK!");
 							break;
 						case WatcherChangeTypes.Renamed:
-							var renamedEventArgs = (RenamedEventArgs)e;
-							if (Equals(renamedEventArgs, last)) return;
-							Console.Write("Moving {0} to {1}..", e.Name, renamedEventArgs.OldName);
-							Move(renamedEventArgs);
+                            if (e == last) continue;
+							Console.Write("Moving {0} to {1}..", e.Name, e.NewName);
+							Move(e);
 							Console.WriteLine(" OK!");
 							break;
 					}
@@ -116,17 +105,17 @@ namespace LiveSync
 
 		private void HandleRenamedEvent(object sender, RenamedEventArgs e)
 		{
-			HandleEvent(e, e.OldName);
+			HandleEvent(new FileSystemEventWrapper {ChangeType = e.ChangeType, Name = e.OldName, NewName = e.Name});
 		}
 
 		private void HandleEvent(object sender, FileSystemEventArgs e)
 		{
-			HandleEvent(e, e.Name);
+            HandleEvent(new FileSystemEventWrapper { ChangeType = e.ChangeType, Name = e.Name, NewName = null });
 		}
 
-		private void HandleEvent(FileSystemEventArgs e, string name)
+        private void HandleEvent(FileSystemEventWrapper e)
 		{
-			if (!IsMatch(name)) return;
+			if (!IsMatch(e.Name)) return;
 			_timer.Change(_activityTimeout, Timeout.Infinite);
 			_queue.Enqueue(e);
 		}
@@ -141,7 +130,7 @@ namespace LiveSync
 			Console.WriteLine(e.GetException());
 		}
 
-		public void Copy(FileSystemEventArgs e)
+        public void Copy(FileSystemEventWrapper e)
 		{
 			var origin = Path.Combine(_rootPath, e.Name);
 			var target = Path.Combine(_targetPath, e.Name);
@@ -158,16 +147,16 @@ namespace LiveSync
 			File.Copy(origin, target, true);
 		}
 
-		public void Delete(FileSystemEventArgs e)
+        public void Delete(FileSystemEventWrapper e)
 		{
 			var target = Path.Combine(_targetPath, e.Name);
 			TryRemoveReadonly(target);
 			File.Delete(target);
 		}
 
-		public void Move(RenamedEventArgs e)
+        public void Move(FileSystemEventWrapper e)
 		{
-			File.Move(Path.Combine(_targetPath, e.OldName), Path.Combine(_targetPath, e.Name));
+			File.Move(Path.Combine(_targetPath, e.Name), Path.Combine(_targetPath, e.NewName));
 		}
 
 		public void TryRemoveReadonly(string path)
