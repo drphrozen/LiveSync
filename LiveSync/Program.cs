@@ -5,7 +5,7 @@ namespace LiveSync
 {
 	internal class Program
 	{
-		private const string SettingsPath = "settings.xml";
+        private const string SettingsPath = "LiveSync.xml";
 
 		static void Main()
 		{
