@@ -105,17 +105,28 @@ namespace LiveSync
 
     private void HandleRenamedEvent(object sender, RenamedEventArgs e)
     {
-      HandleEvent(new FileSystemEventWrapper { ChangeType = e.ChangeType, Name = e.OldName, NewName = e.Name });
+      var nameIsMatch = IsMatch(e.Name);
+      var oldNameIsMatch = IsMatch(e.OldName);
+      if (nameIsMatch && oldNameIsMatch)
+      {
+        HandleEvent(new FileSystemEventWrapper { ChangeType = e.ChangeType, Name = e.OldName, NewName = e.Name });
+      } else if (oldNameIsMatch)
+      {
+        HandleEvent(new FileSystemEventWrapper { ChangeType = WatcherChangeTypes.Deleted, Name = e.OldName, NewName = null });
+      } else if (nameIsMatch)
+      {
+        HandleEvent(new FileSystemEventWrapper { ChangeType = WatcherChangeTypes.Created, Name = e.Name, NewName = null });
+      }
     }
 
     private void HandleEvent(object sender, FileSystemEventArgs e)
     {
+      if (!IsMatch(e.Name)) return;
       HandleEvent(new FileSystemEventWrapper { ChangeType = e.ChangeType, Name = e.Name, NewName = null });
     }
 
     private void HandleEvent(FileSystemEventWrapper e)
     {
-      if (!IsMatch(e.Name)) return;
       _timer.Change(_activityTimeout, Timeout.Infinite);
       _queue.Enqueue(e);
     }
